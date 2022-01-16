@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="preloaded_fonts" translatable="false">
+        <item>@font/lato_thin</item>
+        <item>@font/neuton</item>
+        <item>@font/open_sans</item>
+        <item>@font/playfair_display</item>
+        <item>@font/rubik</item>
+        <item>@font/rubik_medium</item>
+    </array>
+</resources>

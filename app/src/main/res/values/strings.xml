@@ -1,3 +1,40 @@
 <resources>
-    <string name="app_name">power battery</string>
+    <string name="app_name"> Power Battery</string>
+    <string name="Battery_full_charge_notification" translatable="false">Battery full charge notification</string>
+    <string name="menu_home">Home</string>
+    <string name="menu_settings">Settings</string>
+    <string name="menu_stats">Statistics</string>
+    <string name="stats_text"><b>Battery summary</b><br>\nView battery summary of all apps</br></string>
+    <string name="speed_text"><b>Battery speed</b><br>\nTest phone charging and discharging speed</br></string>
+    <string name="history_data"><b>Battery History</b></string>
+    <string name="no_data">No data</string>
+    <string name="NA">----</string>
+    <string name="Battery_speed">Show battery flow value in status bar</string>
+    <string name="permanaent_notification">Show permanent notification</string>
+    <!-- Preference Titles -->
+
+    <!-- Messages Preferences -->
+
+    <!-- Sync Preferences -->
+    <string name="battery_alerts">Battery Alerts</string>
+    <string name="Battery_low_charge_alarm">Battery low notification</string>
+    <string name="Battery_high_voltage_notification">High voltage notifications</string>
+    <string name="Battery_high_temperature_notification">High temperature notification</string>
+    <string name="enable_permanent_notification_to_enable_below_alerts">Enable permanent notification to enable below alerts</string>
+    <string name="title_activity_speed_test">Battery Speed Test</string>
+    <string name="title_activity_interstitia_ad">interstitia_ad_activity</string>
+    <string name="action_settings">Settings</string>
+
+
+    <string name="interstitial_ad_sample">Interstitial Ad Sample</string>
+    <string name="start_level">Level 1</string>
+    <string name="next_level">Next Level</string>
+    <!-- -
+        This is an ad unit ID for an interstitial test ad. Replace with your own interstitial ad unit id.
+        For more information, see https://support.google.com/admob/answer/3052638
+    <!- -->
+    <string name="interstitial_ad_unit_id">ca-app-pub-3798430149757150/7555059418</string>
+
+    <!-- Strings used for fragments for navigation -->
+
 </resources>
