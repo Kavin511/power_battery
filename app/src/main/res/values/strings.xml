@@ -33,7 +33,11 @@
         This is an ad unit ID for an interstitial test ad. Replace with your own interstitial ad unit id.
         For more information, see https://support.google.com/admob/answer/3052638
     <!- -->
-    <string name="interstitial_ad_unit_id">ca-app-pub-3798430149757150/7555059418</string>
+    <string name="interstitial_ad_unit_id">ca-app-pub-3062269684690866/5608901396</string>
+    <string name="check_network">Please check your network connection!</string>
+    <string name="no_ads_available">Trying to load rewarded ad!</string>
+    <string name="wallet_text">\" points! Earn rewards to unlock features\"</string>
+    <string name="start_speed_test">Start Speed Test!</string>
 
     <!-- Strings used for fragments for navigation -->
 

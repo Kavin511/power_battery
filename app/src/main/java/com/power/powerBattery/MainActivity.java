@@ -2,20 +2,19 @@ package com.power.powerBattery;
 
 import static com.power.powerBattery.App.permanent_notification_state;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
 import android.os.BatteryManager;
 import android.os.Bundle;
+import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
@@ -25,14 +24,15 @@ import androidx.viewpager.widget.ViewPager;
 
 import com.google.android.gms.ads.AdError;
 import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.FullScreenContentCallback;
 import com.google.android.gms.ads.LoadAdError;
-import com.google.android.gms.ads.rewarded.RewardItem;
+import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.ads.initialization.InitializationStatus;
+import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
 import com.google.android.gms.ads.rewarded.RewardedAd;
-import com.google.android.gms.ads.rewarded.RewardedAdCallback;
 import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
 import java.util.Objects;
@@ -41,9 +41,6 @@ import me.itangqi.waveloadingview.WaveLoadingView;
 
 
 public class MainActivity extends AppCompatActivity {
-    SwitchCompat low_battery_notification, low_battery_alarm, high_battery_alarm, high_battery_notification;
-    @NonNull
-    Boolean battery_high_notification = false, battery_low_notification = false, battery_high_alarm = false, battery_low_alarm = false;
     MenuItem menuItem;
     ViewPager viewPager;
     BottomNavigationView bottomNavigationView;
@@ -61,78 +58,37 @@ public class MainActivity extends AppCompatActivity {
     private final Battery_service battery_service = new Battery_service();
     SharedPreferences sharedPrefs;
     private SharedPreferences.Editor editor;
-    Fragment home;
-    Fragment settings;
-    Fragment stats;
+    Fragment home, settings, stats;
+    AdRequest adRequest;
+    RewardedAd rewardedAdResponse;
+    private boolean isLookingForReward;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        home = new home();
-        settings = new settings();
-        stats = new stats();
-        viewPager = findViewById(R.id.viewPager);
-        bottomNavigationView = findViewById(R.id.bottom_nav_bar);
-        rewards = findViewById(R.id.rewards);
-        adapter.addFragment(home);
-        adapter.addFragment(stats);
-        adapter.addFragment(settings);
-        viewPager.setAdapter(adapter);
-        rewardsInitialize();
-        sharedPrefs = getApplicationContext().getSharedPreferences("com.power.powerBattery", MODE_PRIVATE);
-        editor = getApplicationContext().getSharedPreferences("com.power.powerBattery", MODE_PRIVATE).edit();
-        if (!sharedPrefs.contains("rewards")) {
-            addReward(1000L);
-        }
+        initialise();
+        initialiseAdapter();
+        loadRewardedAd();
+        initialiseClick();
+        intialiseSharedPrefs();
+        addDefaultRewardToWallet();
         if (sharedPrefs.getBoolean(permanent_notification_state, false)) {
-            Intent serviceIntent = new Intent(getApplicationContext(), Battery_service.class);
-            ContextCompat.startForegroundService(getApplicationContext(), serviceIntent);
-            final IntentFilter intentFilter = new IntentFilter();
-            intentFilter.addAction(Intent.ACTION_BATTERY_CHANGED);
-            new Thread(() -> {
-                while (true) {
-                    BatteryLevelReceiver batteryLevelReceiver = new BatteryLevelReceiver();
-                    Objects.requireNonNull(getApplicationContext()).registerReceiver(batteryLevelReceiver, intentFilter);
-                    try {
-                        Thread.sleep(7000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }).start();
+            startPermanentNotification();
         } else {
-            final IntentFilter intentFilter = new IntentFilter();
-            intentFilter.addAction(Intent.ACTION_BATTERY_CHANGED);
-            new Thread(() -> {
-                while (true) {
-                    BatteryLevelReceiver batteryLevelReceiver = new BatteryLevelReceiver();
-                    Objects.requireNonNull(getApplicationContext()).registerReceiver(batteryLevelReceiver, intentFilter);
-                    try {
-                        Thread.sleep(7000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }).start();
+            startBatteryBroadCast();
         }
+        initialiseMenu();
+        initialiseBottomNavigationListener();
+        initialisePageSwipe();
+    }
 
+    private void initialiseMenu() {
+        bottomNavigationView.inflateMenu(R.menu.navigation_ment);
+    }
 
-        bottomNavigationView.setOnNavigationItemSelectedListener(item -> {
-            switch (item.getItemId()) {
-                case R.id.action_home:
-                    viewPager.setCurrentItem(0);
-                    break;
-                case R.id.action_stats:
-                    viewPager.setCurrentItem(1);
-                    break;
-                case R.id.action_settings:
-                    viewPager.setCurrentItem(2);
-                    break;
-            }
-
-            return true;
-        });
+    private void initialisePageSwipe() {
         viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
 
@@ -149,61 +105,174 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-
     }
 
-    private void rewardsInitialize() {
-        rewards.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Loading Ad", Snackbar.LENGTH_LONG).show();
-                RewardedAd rewardedAd = new RewardedAd(getApplicationContext(),
-                        "ca-app-pub-3798430149757150/6529752356");
-                RewardedAdLoadCallback adLoadCallback = new RewardedAdLoadCallback() {
-                    @Override
-                    public void onRewardedAdLoaded() {
-                        Activity activityContext = MainActivity.this;
-                        RewardedAdCallback adCallback = new RewardedAdCallback() {
-                            @Override
-                            public void onRewardedAdOpened() {
-                            }
+    private void initialiseBottomNavigationListener() {
+        bottomNavigationView.setOnNavigationItemSelectedListener(item -> {
+            switch (item.getItemId()) {
+                case R.id.action_home:
+                    viewPager.setCurrentItem(0);
+                    break;
+                case R.id.action_stats:
+                    viewPager.setCurrentItem(1);
+                    break;
+                case R.id.action_settings:
+                    viewPager.setCurrentItem(2);
+                    break;
+            }
 
-                            @Override
-                            public void onRewardedAdClosed() {
-                            }
+            return true;
+        });
+    }
 
-                            @Override
-                            public void onUserEarnedReward(@NonNull RewardItem reward) {
-                                addReward(100L);
-                                Toast.makeText(getApplicationContext(), "100 points earned!!", Toast.LENGTH_LONG).show();
-                            }
+    private void startBatteryBroadCast() {
+        final IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(Intent.ACTION_BATTERY_CHANGED);
+        new Thread(() -> {
+            while (true) {
+                BatteryLevelReceiver batteryLevelReceiver = new BatteryLevelReceiver();
+                Objects.requireNonNull(getApplicationContext()).registerReceiver(batteryLevelReceiver, intentFilter);
+                try {
+                    Thread.sleep(7000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
 
-                            @Override
-                            public void onRewardedAdFailedToShow(AdError adError) {
-                                Toast.makeText(activityContext, "Failed to load ad. 100 points added for free :)", Toast.LENGTH_SHORT).show();
-                                addReward(100L);
-                            }
-                        };
-                        rewardedAd.show(activityContext, adCallback);
-                    }
+    private void startPermanentNotification() {
+        Intent serviceIntent = new Intent(getApplicationContext(), Battery_service.class);
+        ContextCompat.startForegroundService(getApplicationContext(), serviceIntent);
+        startBatteryBroadCast();
+    }
 
-                    @Override
-                    public void onRewardedAdFailedToLoad(LoadAdError adError) {
-                        // Ad failed to load.
-                    }
-                };
-                rewardedAd.loadAd(new AdRequest.Builder().build(), adLoadCallback);
+    private void addDefaultRewardToWallet() {
+        if (!sharedPrefs.contains("rewards")) {
+            addReward(1000);
+        }
+    }
+
+    private void intialiseSharedPrefs() {
+        sharedPrefs = getApplicationContext().getSharedPreferences("com.power.powerBattery", MODE_PRIVATE);
+        editor = getApplicationContext().getSharedPreferences("com.power.powerBattery", MODE_PRIVATE).edit();
+    }
+
+    private void initialiseAdapter() {
+        adapter.addFragment(home);
+        adapter.addFragment(stats);
+        adapter.addFragment(settings);
+        viewPager.setAdapter(adapter);
+    }
+
+    private void initialise() {
+        home = new home();
+        settings = new settings();
+        stats = new stats();
+        viewPager = findViewById(R.id.viewPager);
+        bottomNavigationView = findViewById(R.id.bottom_nav_bar);
+        rewards = findViewById(R.id.rewards);
+    }
+
+    private void initialiseClick() {
+        rewards.setOnClickListener(view -> {
+            if (rewardedAdResponse != null) {
+                rewardedAdResponse.show(MainActivity.this, rewardItem -> {
+                    addReward(100);
+                });
+                isLookingForReward = false;
+                rewardedAdCallBack();
+            } else if (isInternetNotConnected()) {
+                isLookingForReward = true;
+                loadRewardedAd();
+                Toast.makeText(getApplicationContext(), getString(R.string.check_network), Toast.LENGTH_SHORT).show();
+            } else {
+                isLookingForReward = true;
+                loadRewardedAd();
+                Toast.makeText(getApplicationContext(), getString(R.string.no_ads_available), Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    private void addReward(Long value) {
-        editor.putLong("rewards", sharedPrefs.getLong("rewards", 0) + value);
+    private void rewardedAdCallBack() {
+        rewardedAdResponse.setFullScreenContentCallback(new FullScreenContentCallback() {
+            @Override
+            public void onAdFailedToShowFullScreenContent(@NonNull AdError adError) {
+                rewardedAdResponse = null;
+                Toast.makeText(getApplicationContext(), "Ad failed to show!", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onAdShowedFullScreenContent() {
+                rewardedAdResponse = null;
+            }
+
+            @Override
+            public void onAdDismissedFullScreenContent() {
+                rewardedAdResponse = null;
+
+            }
+
+            @Override
+            public void onAdImpression() {
+                rewardedAdResponse = null;
+            }
+
+            @Override
+            public void onAdClicked() {
+                rewardedAdResponse = null;
+            }
+        });
+        loadRewardedAd();
+    }
+
+    private void loadRewardedAd() {
+        MobileAds.initialize(this, initializationStatus -> {
+        });
+        adRequest = new AdRequest.Builder().build();
+        RewardedAdLoadCallback rewardedAdLoadCallback = new RewardedAdLoadCallback() {
+            @Override
+            public void onAdLoaded(@NonNull RewardedAd rewardedAd) {
+                super.onAdLoaded(rewardedAd);
+                rewardedAdResponse = rewardedAd;
+
+                if (isLookingForReward) {
+                    rewardedAdResponse.show(MainActivity.this, rewardItem -> {
+                        addReward(100);
+                    });
+                    isLookingForReward = false;
+                    loadRewardedAd();
+                    rewardedAdResponse = null;
+                }
+            }
+
+            @Override
+            public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
+                super.onAdFailedToLoad(loadAdError);
+                rewardedAdResponse = null;
+                if (isLookingForReward && !isInternetNotConnected()) {
+                    Toast.makeText(getApplicationContext(), loadAdError.getMessage(), Toast.LENGTH_LONG).show();
+                }
+            }
+        };
+        if (rewardedAdResponse == null) {
+            RewardedAd.load(this,getString(R.string.REWARDED_AD_ID), adRequest, rewardedAdLoadCallback);
+        }
+    }
+
+
+    private boolean isInternetNotConnected() {
+        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+        return !(connectivityManager.getActiveNetworkInfo() != null && connectivityManager.getActiveNetworkInfo().isConnected());
+    }
+
+    private void addReward(long amount) {
+        editor.putLong("rewards", sharedPrefs.getLong("rewards", 0) + amount);
         editor.apply();
         editor.commit();
         try {
             com.power.powerBattery.settings.rewardListener.rewardChange();
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
     }
 }

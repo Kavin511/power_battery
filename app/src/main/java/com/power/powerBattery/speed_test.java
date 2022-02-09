@@ -14,7 +14,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -22,14 +21,15 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.NavUtils;
 import androidx.core.content.ContextCompat;
 
+import com.google.android.gms.ads.AdError;
 import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.AdView;
-import com.google.android.gms.ads.InterstitialAd;
+//import com.google.android.gms.ads.InterstitialAd;
+import com.google.android.gms.ads.FullScreenContentCallback;
 import com.google.android.gms.ads.LoadAdError;
 import com.google.android.gms.ads.MobileAds;
-import com.google.android.gms.ads.instream.InstreamAd;
-import com.google.android.material.button.MaterialButton;
-import com.google.android.material.snackbar.BaseTransientBottomBar;
+//import com.google.android.gms.ads.instream.InstreamAd;
+import com.google.android.gms.ads.interstitial.InterstitialAd;
+import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.Objects;
@@ -41,11 +41,14 @@ public class speed_test extends AppCompatActivity {
     final int[] min = {Integer.MAX_VALUE};
     final int[] max = {Integer.MIN_VALUE};
     final int[] avg = {0};
+    ConstraintLayout testParent;
+    Button startTest;
+    private boolean isTestStarted;
 
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        mInterstitialAd.show();
+        mInterstitialAd.show(this);
         finish();
     }
 
@@ -55,43 +58,95 @@ public class speed_test extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_speed_test);
+        initialise();
+        startTest.setOnClickListener(v -> {
+            if (mInterstitialAd!=null) {
+                mInterstitialAd.show(this);
+            }
+            isTestStarted=true;
+            updateTestLayoutVisibility();
+        });
+    }
+
+    private void updateTestLayoutVisibility() {
+        speed_test_layout.setVisibility(View.VISIBLE);
+        startTest.setVisibility(View.INVISIBLE);
+        testParent.setVisibility(View.VISIBLE);
+    }
+
+    private void initialise() {
+        initialiseViews();
+        initialiseBroadcast();
+        initialiseAd();
+    }
+
+    private void initialiseAd() {
+        MobileAds.initialize(getApplicationContext(), initializationStatus -> {
+        });
+        loadInterstitialAd();
+    }
+
+    private void fullScreenCallBack() {
+        mInterstitialAd.setFullScreenContentCallback(new FullScreenContentCallback() {
+            @Override
+            public void onAdDismissedFullScreenContent() {
+                speed_test_layout.setVisibility(View.VISIBLE);
+                mInterstitialAd=null;
+            }
+
+            @Override
+            public void onAdFailedToShowFullScreenContent(@NonNull AdError adError) {
+                speed_test_layout.setVisibility(View.VISIBLE);
+                mInterstitialAd=null;
+            }
+
+            @Override
+            public void onAdShowedFullScreenContent() {
+                speed_test_layout.setVisibility(View.VISIBLE);
+            }
+        });
+    }
+
+    private void loadInterstitialAd() {
+        AdRequest adRequest = new AdRequest.Builder().build();
+        InterstitialAd.load(this, getString(R.string.INTERSTITIAL_AD_ID), adRequest,
+                new InterstitialAdLoadCallback() {
+                    @Override
+                    public void onAdLoaded(@NonNull InterstitialAd interstitialAd) {
+                        mInterstitialAd = interstitialAd;
+                        if (isTestStarted){
+                            mInterstitialAd.show(speed_test.this);
+                        }
+                        fullScreenCallBack();
+                    }
+
+                    @Override
+                    public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
+                        mInterstitialAd = null;
+                    }
+                });
+    }
+
+    private void initialiseBroadcast() {
+        batteryManager = (BatteryManager) getSystemService(BATTERY_SERVICE);
+        getApplicationContext().registerReceiver(broadcastReceiver, new IntentFilter("BatteryLevelReceiver"));
+    }
+
+    private void initialiseViews() {
         now = findViewById(R.id.now);
         max_now = findViewById(R.id.max_now);
         min_now = findViewById(R.id.min_now);
         result = findViewById(R.id.result);
         speed_test_layout = findViewById(R.id.speed_test_layout);
-        batteryManager = (BatteryManager) getSystemService(BATTERY_SERVICE);
-        getApplicationContext().registerReceiver(broadcastReceiver, new IntentFilter("BatteryLevelReceiver"));
+        testParent = findViewById(R.id.testParent);
+        startTest = findViewById(R.id.loadAd);
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
-
-        MobileAds.initialize(getApplicationContext(), initializationStatus -> {
-        });
-        ConstraintLayout testParent = findViewById(R.id.testParent);
-        mInterstitialAd = new InterstitialAd(this);
-        mInterstitialAd.setAdUnitId(getString(R.string.interstitial_ad_unit_id));
-        mInterstitialAd.loadAd(new AdRequest.Builder().build());
-        Button startTest = findViewById(R.id.loadAd);
-        if (mInterstitialAd.isLoaded()) {
-            speed_test_layout.setVisibility(View.VISIBLE);
-            mInterstitialAd.show();
-        }
-        startTest.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                speed_test_layout.setVisibility(View.VISIBLE);
-                mInterstitialAd.show();
-                startTest.setVisibility(View.INVISIBLE);
-                testParent.setVisibility(View.VISIBLE);
-                Snackbar.make(startTest, "Loading ad! Speed test will start soon", Snackbar.LENGTH_SHORT).show();
-            }
-
-        });
     }
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            NavUtils.navigateUpFromSameTask(this);
+            finish();
             return true;
         }
         return super.onOptionsItemSelected(item);

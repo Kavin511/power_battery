@@ -8,6 +8,9 @@ import android.content.IntentFilter;
 
 import androidx.core.content.ContextCompat;
 
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.rewarded.RewardedAd;
+
 import java.util.Objects;
 
 public class App extends Application{

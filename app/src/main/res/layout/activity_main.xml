@@ -60,7 +60,6 @@
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:menu="@menu/navigation_ment"
         android:id="@+id/bottom_nav_bar"
         android:background="@drawable/main_background"
         android:layout_alignParentBottom="true"/>

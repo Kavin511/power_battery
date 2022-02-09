@@ -97,13 +97,6 @@ public class stats extends Fragment {
         });
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        MobileAds.initialize(getContext(), initializationStatus -> {
-        });
-//       AdView mAdView = v.findViewById(R.id.adView);
-//       AdView mAdview=v.findViewById(R.id.adView2);
-//        AdRequest adRequest = new AdRequest.Builder().build();
-//        mAdView.loadAd(adRequest);
-//        mAdview.loadAd(adRequest);
         return v;
     }
 }

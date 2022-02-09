@@ -26,6 +26,8 @@ import com.google.android.gms.ads.MobileAds;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 
+import java.util.Objects;
+
 interface RewardListener {
     void rewardChange();
 }
@@ -49,58 +51,18 @@ public class settings extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         v = inflater.inflate(R.layout.fragment_settings, container, false);
-        permanent_notification = v.findViewById(R.id.permanent_notification);
-        battery_low_notification = v.findViewById(R.id.battery_low_charge_notification);
-        full_charge_notification = v.findViewById(R.id.battery_full_charge_notification);
-        high_temperature_notification = v.findViewById(R.id.battery_high_temperature_notification);
-        reward_value = v.findViewById(R.id.reward_value);
-        high_voltage_notification = v.findViewById(R.id.battery_high_voltage_notification);
-        current_speed = v.findViewById(R.id.current_speed);
-        oreo_text = v.findViewById(R.id.oreo_text);
-        editor = requireActivity().getSharedPreferences("com.power.powerBattery", MODE_PRIVATE).edit();
-        sharedPrefs = requireActivity().getSharedPreferences("com.power.powerBattery", MODE_PRIVATE);
-        reward_value.setText(sharedPrefs.getLong("rewards", 0) + " " + reward_value.getText());
-        rewardListener = new RewardListener() {
-            @Override
-            public void rewardChange() {
-                reward_value.setText(sharedPrefs.getLong("rewards", 0) + " points! Earn rewards to unlock features");
-            }
-        };
+        initialiseViews();
+        initialisePrefs();
+        rewardListener();
         full_charge_notification.setChecked(sharedPrefs.getBoolean(high_battery_notification_state, false));
         permanent_notification.setChecked(sharedPrefs.getBoolean(permanent_notification_state, false));
-
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            if (!permanent_notification.isChecked()) {
-                current_speed.setEnabled(false);
-                high_voltage_notification.setEnabled(false);
-                battery_low_notification.setEnabled(false);
-                high_temperature_notification.setEnabled(false);
-                full_charge_notification.setEnabled(false);
-            } else {
-                high_voltage_notification.setEnabled(true);
-                battery_low_notification.setEnabled(true);
-                high_temperature_notification.setEnabled(true);
-                full_charge_notification.setEnabled(true);
-            }
-        }
-
-        current_speed.setChecked(sharedPrefs.getBoolean(current_speed_state, false));
-        high_voltage_notification.setChecked(sharedPrefs.getBoolean(high_voltage_notification_state, false));
-        battery_low_notification.setChecked(sharedPrefs.getBoolean(low_battery_notification_state, false));
-        high_temperature_notification.setChecked(sharedPrefs.getBoolean(high_temperature_notification_state, false));
+        setUpNotification();
+        updateCheckedStatus(current_speed, sharedPrefs.getBoolean(current_speed_state, false), high_voltage_notification, sharedPrefs.getBoolean(high_voltage_notification_state, false), battery_low_notification, sharedPrefs.getBoolean(low_battery_notification_state, false), sharedPrefs.getBoolean(high_temperature_notification_state, false));
         if (sharedPrefs.getBoolean(permanent_notification_state, false)) {
-            current_speed.setChecked(sharedPrefs.getBoolean(current_speed_state, false));
-            Intent serviceIntent = new Intent(getContext(), Battery_service.class);
-            ContextCompat.startForegroundService(requireContext(), serviceIntent);
+            startPermanentNotification();
         } else
             current_speed.setEnabled(false);
-        switchChanges(current_speed, current_speed_state);
-        switchChanges(full_charge_notification, high_battery_notification_state);
-
-        switchChanges(battery_low_notification, low_battery_notification_state);
-        switchChanges(high_voltage_notification, high_voltage_notification_state);
-
-        switchChanges(high_temperature_notification, high_temperature_notification_state);
+        updateSwitchStatuses();
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             switchChanges(current_speed, current_speed_state);
             oreo_text.setVisibility(View.VISIBLE);
@@ -109,63 +71,119 @@ public class settings extends Fragment {
             oreo_text.setVisibility(View.GONE);
         }
         permanent_notification.setOnClickListener(v1 -> {
-            permanent_notification.setChecked(!sharedPrefs.getBoolean(permanent_notification_state,false));
+            permanent_notification.setChecked(!sharedPrefs.getBoolean(permanent_notification_state, false));
             getPermanent_notification();
-            editor.putBoolean(permanent_notification_state,!sharedPrefs.getBoolean(permanent_notification_state,false));
+            editor.putBoolean(permanent_notification_state, !sharedPrefs.getBoolean(permanent_notification_state, false));
             editor.apply();
         });
-        MobileAds.initialize(getContext(), initializationStatus -> {
+        MobileAds.initialize(requireContext(), initializationStatus -> {
         });
 
-//        AdView mAdView = v.findViewById(R.id.adView);
-//        AdRequest adRequest = new AdRequest.Builder().build();
-//        mAdView.loadAd(adRequest);
+        loadAd();
         return v;
+    }
+
+    private void startPermanentNotification() {
+        current_speed.setChecked(sharedPrefs.getBoolean(current_speed_state, false));
+        Intent serviceIntent = new Intent(getContext(), Battery_service.class);
+        ContextCompat.startForegroundService(requireContext(), serviceIntent);
+    }
+
+    private void updateSwitchStatuses() {
+        switchChanges(current_speed, current_speed_state);
+        switchChanges(full_charge_notification, high_battery_notification_state);
+        switchChanges(battery_low_notification, low_battery_notification_state);
+        switchChanges(high_voltage_notification, high_voltage_notification_state);
+        switchChanges(high_temperature_notification, high_temperature_notification_state);
+    }
+
+    private void updateCheckedStatus(SwitchMaterial current_speed, boolean aBoolean, SwitchMaterial high_voltage_notification, boolean aBoolean2, SwitchMaterial battery_low_notification, boolean aBoolean3, boolean aBoolean4) {
+        current_speed.setChecked(aBoolean);
+        high_voltage_notification.setChecked(aBoolean2);
+        battery_low_notification.setChecked(aBoolean3);
+        high_temperature_notification.setChecked(aBoolean4);
+    }
+
+    private void setUpNotification() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            if (!permanent_notification.isChecked()) {
+                changeFieldEnabledStatus(false, high_voltage_notification, high_temperature_notification, full_charge_notification);
+            } else {
+                high_voltage_notification.setEnabled(true);
+                battery_low_notification.setEnabled(true);
+                high_temperature_notification.setEnabled(true);
+                full_charge_notification.setEnabled(true);
+            }
+        }
+    }
+
+    private void initialisePrefs() {
+        editor = requireActivity().getSharedPreferences("com.power.powerBattery", MODE_PRIVATE).edit();
+        sharedPrefs = requireActivity().getSharedPreferences("com.power.powerBattery", MODE_PRIVATE);
+    }
+
+    private void rewardListener() {
+        reward_value.setText(sharedPrefs.getLong("rewards", 0) + " " + reward_value.getText());
+        rewardListener = this::rewardChange;
+    }
+
+    private void initialiseViews() {
+        permanent_notification = v.findViewById(R.id.permanent_notification);
+        battery_low_notification = v.findViewById(R.id.battery_low_charge_notification);
+        full_charge_notification = v.findViewById(R.id.battery_full_charge_notification);
+        high_temperature_notification = v.findViewById(R.id.battery_high_temperature_notification);
+        reward_value = v.findViewById(R.id.reward_value);
+        high_voltage_notification = v.findViewById(R.id.battery_high_voltage_notification);
+        current_speed = v.findViewById(R.id.current_speed);
+        oreo_text = v.findViewById(R.id.oreo_text);
+    }
+
+    private void loadAd() {
+        AdView mAdView = v.findViewById(R.id.adView);
+        AdRequest adRequest = new AdRequest.Builder().build();
+        mAdView.loadAd(adRequest);
     }
 
     public void getPermanent_notification() {
         if (!permanent_notification.isChecked()) {
-            current_speed.setChecked(false);
-            current_speed.setEnabled(false);
-            full_charge_notification.setChecked(false);
-            full_charge_notification.setEnabled(false);
-            battery_low_notification.setEnabled(false);
-            battery_low_notification.setChecked(false);
-            high_voltage_notification.setChecked(false);
-            high_voltage_notification.setEnabled(false);
-            high_temperature_notification.setChecked(false);
-            high_temperature_notification.setEnabled(false);
-            switchChanges(current_speed, current_speed_state);
-            switchChanges(full_charge_notification, high_battery_notification_state);
-            switchChanges(battery_low_notification, low_battery_notification_state);
-            switchChanges(high_voltage_notification, high_voltage_notification_state);
-            switchChanges(high_temperature_notification, high_temperature_notification_state);
+            disableFields();
+            updateSwitchStatuses();
             Intent serviceIntent = new Intent(getContext(), Battery_service.class);
             requireContext().stopService(serviceIntent);
         } else {
             current_speed.setChecked(false);
-            current_speed.setEnabled(true);
-            switchChanges(current_speed, current_speed_state);
-            full_charge_notification.setEnabled(true);
-            switchChanges(full_charge_notification, high_battery_notification_state);
-            battery_low_notification.setEnabled(true);
-            switchChanges(battery_low_notification, low_battery_notification_state);
-            high_voltage_notification.setEnabled(true);
-            switchChanges(high_voltage_notification, high_voltage_notification_state);
-            high_temperature_notification.setEnabled(true);
-            switchChanges(high_temperature_notification, high_temperature_notification_state);
-            full_charge_notification.setChecked(false);
-            battery_low_notification.setChecked(false);
-            high_voltage_notification.setChecked(false);
-            high_temperature_notification.setChecked(false);
+            changeFieldEnabledStatus(true, full_charge_notification, high_voltage_notification, high_temperature_notification);
+            updateSwitchStatuses();
+            updateCheckedStatus(full_charge_notification, false, battery_low_notification, false, high_voltage_notification, false, false);
             Intent serviceIntent = new Intent(getContext(), Battery_service.class);
             ContextCompat.startForegroundService(requireContext(), serviceIntent);
         }
     }
 
+    private void changeFieldEnabledStatus(boolean b, @NonNull SwitchMaterial full_charge_notification, @NonNull SwitchMaterial high_voltage_notification, @NonNull SwitchMaterial high_temperature_notification) {
+        current_speed.setEnabled(b);
+        full_charge_notification.setEnabled(b);
+        battery_low_notification.setEnabled(b);
+        high_voltage_notification.setEnabled(b);
+        high_temperature_notification.setEnabled(b);
+    }
+
+    private void disableFields() {
+        current_speed.setChecked(false);
+        current_speed.setEnabled(false);
+        full_charge_notification.setChecked(false);
+        full_charge_notification.setEnabled(false);
+        battery_low_notification.setEnabled(false);
+        battery_low_notification.setChecked(false);
+        high_voltage_notification.setChecked(false);
+        high_voltage_notification.setEnabled(false);
+        high_temperature_notification.setChecked(false);
+        high_temperature_notification.setEnabled(false);
+    }
+
     void switchChanges(@NonNull SwitchMaterial switch_name, String keyValue) {
         switch_name.setOnCheckedChangeListener((compoundButton, b) -> {
-          rewardCheck(switch_name, keyValue, compoundButton);
+            rewardCheck(switch_name, keyValue, compoundButton);
         });
     }
 
@@ -196,4 +214,7 @@ public class settings extends Fragment {
         switch_name.setChecked(sharedPrefs.getBoolean(keyValue, true));
     }
 
+    private void rewardChange() {
+        reward_value.setText(sharedPrefs.getLong("rewards", 0) + getString(R.string.wallet_text));
+    }
 }

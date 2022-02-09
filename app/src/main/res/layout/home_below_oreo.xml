@@ -9,7 +9,6 @@
     android:backgroundTint="#00FFFFFF"
     >
     <RelativeLayout
-        android:id="@+id/contents"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="2dp"
@@ -246,5 +245,15 @@
             android:visibility="gone"
             app:drawableTopCompat="@drawable/ic_remaining_time"
             tools:ignore="RtlSymmetry" />
+
+        <com.google.android.gms.ads.AdView xmlns:ads="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/adView"
+            android:layout_below="@+id/linearlayout3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            ads:adSize="BANNER"
+            ads:adUnitId="@string/BANNER_AD_ID"/>
     </RelativeLayout>
 </ScrollView>

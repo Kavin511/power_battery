@@ -3,22 +3,47 @@ plugins {
 }
 
 android {
+    signingConfigs {
+        debug {
+            storeFile file('C:\\Users\\kavin\\OneDrive\\Desktop\\key\\power_battery_key.jks')
+            storePassword 'Kav@2999|Ini@1000'
+            keyAlias 'key0'
+            keyPassword 'Kav@2999|Ini@1000'
+        }
+        release {
+            storeFile file('C:\\Users\\kavin\\OneDrive\\Desktop\\key\\power_battery_key.jks')
+            storePassword 'Kav@2999|Ini@1000'
+            keyAlias 'key0'
+            keyPassword 'Kav@2999|Ini@1000'
+        }
+    }
     compileSdk 32
 
     defaultConfig {
         applicationId "com.power.powerBattery"
         minSdk 21
         targetSdk 32
-        versionCode 9
-        versionName "1.6.2"
+        versionCode 10
+        versionName "1.6.3"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        signingConfig signingConfigs.release
     }
 
     buildTypes {
         release {
-            minifyEnabled false
+            shrinkResources true
+            minifyEnabled true
+            debuggable true
+            resValue "string","REWARDED_AD_ID","ca-app-pub-3062269684690866/6210363161"
+            resValue "string","BANNER_AD_ID","ca-app-pub-3062269684690866/5225758019"
+            resValue "string","INTERSTITIAL_AD_ID","ca-app-pub-3062269684690866/5608901396"
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        debug{
+            resValue "string","REWARDED_AD_ID","ca-app-pub-3940256099942544/5224354917"
+            resValue "string","BANNER_AD_ID","ca-app-pub-3940256099942544/6300978111"
+            resValue "string","INTERSTITIAL_AD_ID","ca-app-pub-3940256099942544/1033173712"
         }
     }
     compileOptions {
@@ -43,13 +68,13 @@ dependencies {
     implementation 'com.google.firebase:firebase-appindexing:19.1.0'
     implementation 'me.itangqi.waveloadingview:library:0.3.5'
     implementation "androidx.coordinatorlayout:coordinatorlayout:1.1.0"
-    implementation 'com.google.android.material:material:1.2.1'
+    implementation 'com.google.android.material:material:1.5.0'
     implementation "android.arch.work:work-runtime:1.0.1"
     implementation 'androidx.room:room-runtime:2.4.1'
     annotationProcessor 'androidx.room:room-compiler:2.4.1'
     androidTestImplementation 'androidx.room:room-testing:2.4.1'
     implementation "androidx.lifecycle:lifecycle-extensions:2.2.0"
     annotationProcessor "androidx.lifecycle:lifecycle-compiler:2.4.0"
-    implementation 'com.google.android.gms:play-services-ads:19.5.0'
+    implementation 'com.google.android.gms:play-services-ads:20.5.0'
     implementation "com.airbnb.android:lottie:3.4.0"
 }

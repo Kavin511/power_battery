@@ -25,7 +25,7 @@
         android:backgroundTint="@color/colorPrimary"
         android:textSize="18sp"
         android:textAllCaps="false"
-        android:text="Start Speed Test!"
+        android:text="@string/start_speed_test"
         android:textColor="#FFF" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -110,6 +110,6 @@
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         ads:adSize="BANNER"
-        ads:adUnitId="ca-app-pub-3798430149757150/1097182411"></com.google.android.gms.ads.AdView>
+        ads:adUnitId="@string/BANNER_AD_ID"/>
 
 </RelativeLayout>

@@ -258,21 +258,28 @@
 
 
                 </LinearLayout>
-    <LinearLayout
-        android:id="@+id/linearlayout5"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#fff"
-        android:paddingLeft="10dp"
-        android:paddingRight="10dp"
-        android:paddingTop="5dp"
-        android:orientation="horizontal"
-        android:paddingBottom="5dp"
-        android:layout_marginRight="2dp"
-        android:layout_marginLeft="2dp"
-        android:layout_marginBottom="30dp"
-        android:layout_below="@id/linearlayout4">
 
-    </LinearLayout>
+        <LinearLayout
+            android:id="@+id/linearlayout5"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/linearlayout4"
+            android:layout_marginLeft="2dp"
+            android:layout_marginRight="2dp"
+            android:layout_marginBottom="30dp"
+            android:background="#fff"
+            android:orientation="horizontal"
+            android:paddingLeft="10dp"
+            android:paddingTop="5dp"
+            android:paddingRight="10dp"
+            android:paddingBottom="5dp">
+
+            <com.google.android.gms.ads.AdView xmlns:ads="http://schemas.android.com/apk/res-auto"
+                android:id="@+id/adView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                ads:adSize="BANNER"
+                ads:adUnitId="@string/BANNER_AD_ID"/>
+        </LinearLayout>
     </RelativeLayout>
     </ScrollView>
