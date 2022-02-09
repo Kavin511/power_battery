@@ -34,7 +34,6 @@ android {
         release {
             shrinkResources true
             minifyEnabled true
-            debuggable true
             resValue "string","REWARDED_AD_ID","ca-app-pub-3062269684690866/6210363161"
             resValue "string","BANNER_AD_ID","ca-app-pub-3062269684690866/5225758019"
             resValue "string","INTERSTITIAL_AD_ID","ca-app-pub-3062269684690866/5608901396"
