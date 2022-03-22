@@ -134,7 +134,7 @@ public class home extends Fragment {
             health.setTextColor(health_color);
             setTextViewDrawableColor(health, health_color);
             waveLoadingView.setProgressValue(level);
-            String sourceString = "<b>" + "Current Now" + "</b><br>" + rate + " mA";
+            String sourceString = "<b>" + "Battery "+(rate>0?"charging":"discharging")+" at "+ "</b><br>" + rate + " mA";
             current.setText(Html.fromHtml(sourceString));
             if (rate < 0) {
                 setTextViewDrawableColor(current, Color.parseColor("#ff6347"));
