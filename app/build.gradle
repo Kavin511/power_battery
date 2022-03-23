@@ -24,8 +24,8 @@ android {
         applicationId "com.power.powerBattery"
         minSdk 21
         targetSdk 32
-        versionCode 12
-        versionName "1.6.5"
+        versionCode 13
+        versionName "1.6.6"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         signingConfig signingConfigs.release
@@ -33,14 +33,13 @@ android {
 
     buildTypes {
         release {
+            minifyEnabled true
             resValue "string","REWARDED_AD_ID","ca-app-pub-3062269684690866/6210363161"
-            resValue "string","BANNER_AD_ID","ca-app-pub-3062269684690866/5225758019"
             resValue "string","INTERSTITIAL_AD_ID","ca-app-pub-3062269684690866/5608901396"
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
         debug{
             resValue "string","REWARDED_AD_ID","ca-app-pub-3940256099942544/5224354917"
-            resValue "string","BANNER_AD_ID","ca-app-pub-3940256099942544/6300978111"
             resValue "string","INTERSTITIAL_AD_ID","ca-app-pub-3940256099942544/1033173712"
         }
     }

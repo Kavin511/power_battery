@@ -187,7 +187,6 @@
                 android:textAlignment="textStart" />
 
             <RelativeLayout
-                android:id="@+id/linearlayout5"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="2dp"
@@ -199,12 +198,6 @@
                 android:paddingRight="10dp"
                 android:paddingBottom="5dp">
 
-                <com.google.android.gms.ads.AdView xmlns:ads="http://schemas.android.com/apk/res-auto"
-                    android:id="@+id/adView"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    ads:adSize="BANNER"
-                    ads:adUnitId="@string/BANNER_AD_ID"/>
             </RelativeLayout>
 
         </LinearLayout>

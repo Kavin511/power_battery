@@ -1,51 +1,38 @@
 package com.power.powerBattery
 
-import androidx.appcompat.app.AppCompatActivity
-import androidx.viewpager.widget.ViewPager
-import com.google.android.material.bottomnavigation.BottomNavigationView
-import me.itangqi.waveloadingview.WaveLoadingView
-import android.widget.TextView
-import android.os.BatteryManager
-import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
-import com.power.powerBattery.BatteryLevelReceiver
-import com.power.powerBattery.AuthPagerAdapter
-import com.power.powerBattery.Battery_service
-import android.content.SharedPreferences
-import com.google.android.gms.ads.rewarded.RewardedAd
-import android.os.Bundle
-import com.power.powerBattery.R
-import com.power.powerBattery.App
-import androidx.viewpager.widget.ViewPager.OnPageChangeListener
-import android.content.IntentFilter
 import android.content.Intent
-import androidx.core.content.ContextCompat
-import com.power.powerBattery.home
-import com.power.powerBattery.settings
-import com.power.powerBattery.stats
-import com.google.android.gms.ads.rewarded.RewardItem
-import android.widget.Toast
-import com.google.android.gms.ads.initialization.OnInitializationCompleteListener
-import com.google.android.gms.ads.initialization.InitializationStatus
-import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
+import android.content.IntentFilter
+import android.content.SharedPreferences
 import android.net.ConnectivityManager
+import android.os.BatteryManager
+import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
+import android.widget.TextView
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentPagerAdapter
+import androidx.viewpager.widget.ViewPager
+import androidx.viewpager.widget.ViewPager.OnPageChangeListener
 import com.google.android.gms.ads.*
-import java.lang.Exception
+import com.google.android.gms.ads.initialization.InitializationStatus
+import com.google.android.gms.ads.rewarded.RewardItem
+import com.google.android.gms.ads.rewarded.RewardedAd
+import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
+import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+import me.itangqi.waveloadingview.WaveLoadingView
 import java.util.*
 
 class MainActivity : AppCompatActivity() {
     var menuItem: MenuItem? = null
     var viewPager: ViewPager? = null
     var bottomNavigationView: BottomNavigationView? = null
-    var waveLoadingView: WaveLoadingView? = null
-    var temperature: TextView? = null
     var current: TextView? = null
-    var health: TextView? = null
     var remaining_time: TextView? = null
     var batteryManager: BatteryManager? = null
     var builder: NotificationCompat.Builder? = null

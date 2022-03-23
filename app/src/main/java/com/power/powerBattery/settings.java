@@ -20,13 +20,9 @@ import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
-import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.MobileAds;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.switchmaterial.SwitchMaterial;
-
-import java.util.Objects;
 
 interface RewardListener {
     void rewardChange();
@@ -78,8 +74,6 @@ public class settings extends Fragment {
         });
         MobileAds.initialize(requireContext(), initializationStatus -> {
         });
-
-        loadAd();
         return v;
     }
 
@@ -136,12 +130,6 @@ public class settings extends Fragment {
         high_voltage_notification = v.findViewById(R.id.battery_high_voltage_notification);
         current_speed = v.findViewById(R.id.current_speed);
         oreo_text = v.findViewById(R.id.oreo_text);
-    }
-
-    private void loadAd() {
-        AdView mAdView = v.findViewById(R.id.adView);
-        AdRequest adRequest = new AdRequest.Builder().build();
-        mAdView.loadAd(adRequest);
     }
 
     public void getPermanent_notification() {
